@@ -1,4 +1,4 @@
-package fileFork;
+package hog;
 
 import java.io.*;
 import java.nio.file.FileSystems;
@@ -54,7 +54,7 @@ public class Engine {
 
         // LISTOFINDEXES FILE
 
-        bw = new BufferedWriter(new FileWriter(location + "/" + "Indexes" + "/" +"ListOfIndexes.txt"));
+        bw = new BufferedWriter(new FileWriter(location + "/" + "Indexes" + "/" + "ListOfIndexes.txt"));
         bw.close();
     }
 
@@ -81,11 +81,11 @@ public class Engine {
         noe = Integer.parseInt(br.readLine());
         br.close();
         br = new BufferedReader(new FileReader(location + "/Indexes/ListOfIndexes.txt"));
-        while((temp = br.readLine())!= null && temp.length()!= 0){
+        while ((temp = br.readLine()) != null && temp.length() != 0) {
             st = new StringTokenizer(temp, ":");
             temp = st.nextToken();
             temp1 = st.nextToken();
-            if(temp1.equals("ALPHA"))
+            if (temp1.equals("ALPHA"))
                 keys.add(temp);
 
             else
@@ -96,23 +96,24 @@ public class Engine {
 
     //  JOB-SCHEDULER
 
-    private class JobScheduler{
+    private class JobScheduler {
         final ExecutorService[] es;
         final ExecutorCompletionService<Resultset>[] ecs = new ExecutorCompletionService[nop];
         int turn;
+
         public JobScheduler() {
             es = new ExecutorService[nop];
-            for(int i = 0 ; i < nop ; i++){
+            for (int i = 0; i < nop; i++) {
                 es[i] = Executors.newSingleThreadExecutor();
                 ecs[i] = new ExecutorCompletionService<Resultset>(es[i]);
             }
             turn = 0;
         }
 
-        void addJob(Entry e){
+        void addJob(Entry e) {
             es[turn].submit(new Worker(turn, e));
             turn++;
-            if(turn == nop)
+            if (turn == nop)
                 turn = 0;
         }
 
@@ -121,35 +122,35 @@ public class Engine {
             Resultset result = new Resultset(location, threadPool);
             String newValue = value;
 
-            if(keymap.containsKey(index))
+            if (keymap.containsKey(index))
                 newValue = String.format("%" + Integer.toString(keymap.get(index)) + "s", value).replace(" ", "0");
 
-            for(int i = 0 ; i < nop ; i++){
+            for (int i = 0; i < nop; i++) {
                 ecs[i].submit(new Finder(index, query, newValue, i));
             }
 
-            for(int i = 0 ; i < nop ; i++){
+            for (int i = 0; i < nop; i++) {
                 rs[i] = ecs[i].take().get();
             }
 
-            for(int i = 0 ; i < nop ; i++){
+            for (int i = 0; i < nop; i++) {
                 result.fileset.addAll(rs[i].fileset);
             }
             result.prepare();
             return result;
         }
 
-        void makeIndex(String key,String value, int fno){
+        void makeIndex(String key, String value, int fno) {
             es[turn].submit(new Indexer(key, value, turn, fno));
             turn++;
-            if(turn == nop)
+            if (turn == nop)
                 turn = 0;
         }
 
-        void makeIndex(String key,String value, int fno, int degree){
+        void makeIndex(String key, String value, int fno, int degree) {
             es[turn].submit(new NumericIndexer(key, value, turn, fno, degree));
             turn++;
-            if(turn == nop)
+            if (turn == nop)
                 turn = 0;
         }
     }
@@ -160,8 +161,9 @@ public class Engine {
 
         final int tno;
         final Entry e;
-        Worker(int a, Entry E){
-            tno = a ;
+
+        Worker(int a, Entry E) {
+            tno = a;
             e = E;
         }
 
@@ -184,8 +186,9 @@ public class Engine {
         final int fno;
         final String key;
         final String value;
-        Indexer(String key, String value, int a, int fno){
-            tno = a ;
+
+        Indexer(String key, String value, int a, int fno) {
+            tno = a;
             this.fno = fno;
             this.key = key;
             this.value = value;
@@ -204,7 +207,7 @@ public class Engine {
 
     // FINDER THREAD
 
-    private class Finder implements Callable<Resultset>{
+    private class Finder implements Callable<Resultset> {
         final String index;
         final String query;
         final String value;
@@ -239,14 +242,14 @@ public class Engine {
 
     //  REQUEST VACANCY
 
-    public final Entry request(){
+    public final Entry request() {
         noe++;
         return new Entry(location, noe);
     }
 
     // INSERTION
 
-    public final void insert(Entry Entry){
+    public final void insert(Entry Entry) {
         js.addJob(Entry);
     }
 
@@ -254,10 +257,10 @@ public class Engine {
 
     public final void shutdown() throws IOException {
 
-        if(threadPool.isTerminated())
+        if (threadPool.isTerminated())
             threadPool.shutdown();
 
-        else{
+        else {
             threadPool.shutdown();
             try {
                 threadPool.awaitTermination(500, TimeUnit.DAYS);
@@ -266,11 +269,11 @@ public class Engine {
             }
         }
 
-        for(int i = 0 ; i < nop ; i++){
-            if(js.es[i].isTerminated())
+        for (int i = 0; i < nop; i++) {
+            if (js.es[i].isTerminated())
                 js.es[i].shutdown();
 
-            else{
+            else {
                 js.es[i].shutdown();
                 try {
                     js.es[i].awaitTermination(500, TimeUnit.DAYS);
@@ -318,10 +321,8 @@ public class Engine {
                 bw = new BufferedWriter(new FileWriter(indexpath.toString() + "/status.txt"));
                 bw.write("nf");
                 bw.close();
-            }
-            else j = 0;
-        }
-        else{
+            } else j = 0;
+        } else {
             if (!(new File(indexpath + "/" + Character.toString(ch))).exists()) {
                 indexpath.append("/").append(Character.toString(ch));
                 new File(indexpath.toString()).mkdirs();
@@ -336,8 +337,7 @@ public class Engine {
                 bw = new BufferedWriter(new FileWriter(indexpath.toString() + "/status.txt"));
                 bw.write("nf");
                 bw.close();
-            }
-            else j = 0;
+            } else j = 0;
         }
         first = ch;
         for (; j < valuebase.length; j++) {
@@ -407,7 +407,7 @@ public class Engine {
                 File f1 = new File(indexpath.toString() + "/newfile.txt");
                 bw = new BufferedWriter(new FileWriter(f1));
                 Iterator<String> it = temp1.iterator();
-                while(it.hasNext()){
+                while (it.hasNext()) {
                     bw.write(it.next());
                     bw.newLine();
                 }
@@ -484,19 +484,19 @@ public class Engine {
         noet[no]++;
 
         bw = dh.getWriter(e.fileno, location);
-        while(it.hasNext()){
+        while (it.hasNext()) {
             p = it.next();
             bw.write(p.key + ":");
-            for(String s : p.values) bw.write(s + ";");
+            for (String s : p.values) bw.write(s + ";");
             bw.newLine();
-            if(keys.contains(p.key)){
-                for(String s : p.values){
+            if (keys.contains(p.key)) {
+                for (String s : p.values) {
                     indexEntry(p.key, s, e.fileno, no);
                 }
             }
 
-            if(keymap.containsKey(p.key)){
-                for(String s : p.values){
+            if (keymap.containsKey(p.key)) {
+                for (String s : p.values) {
                     indexEntry(p.key, s, e.fileno, no, keymap.get(p.key));
                 }
             }
@@ -506,7 +506,7 @@ public class Engine {
 
     // ADDING NEW LEVEL TO THE INDEX
 
-    private void addLevel(String s) throws IOException{
+    private void addLevel(String s) throws IOException {
 
         BufferedWriter bw;
         BufferedReader br;
@@ -517,7 +517,7 @@ public class Engine {
 
         // SHIFTING THE ENTRIES
 
-        if((new File(s + "/Index.txt")).exists()){
+        if ((new File(s + "/Index.txt")).exists()) {
             char first;
             int c;
             String temp, temp1;
@@ -528,13 +528,13 @@ public class Engine {
             BufferedReader br1;
             br = new BufferedReader(new FileReader(s + "/Index.txt"));
 
-            while((temp = br.readLine())!= null && temp.length()!= 0){
+            while ((temp = br.readLine()) != null && temp.length() != 0) {
                 st1 = new StringTokenizer(temp, ":");
                 temp1 = st1.nextToken();
                 first = temp1.charAt(c);
 
-                if(Character.isUpperCase(first)){
-                    if(!(new File(s + "/$" + Character.toString(first)).exists())){
+                if (Character.isUpperCase(first)) {
+                    if (!(new File(s + "/$" + Character.toString(first)).exists())) {
                         (new File(s + "/$" + Character.toString(first))).mkdirs();
                         bw = new BufferedWriter(new FileWriter(s + "/$" + Character.toString(first) + "/Index.txt"));
                         bw.close();
@@ -547,10 +547,8 @@ public class Engine {
                         bw.write("nf");
                         bw.close();
                     }
-                }
-
-                else{
-                    if(!(new File(s + "/" + Character.toString(first)).exists())){
+                } else {
+                    if (!(new File(s + "/" + Character.toString(first)).exists())) {
                         (new File(s + "/" + Character.toString(first))).mkdirs();
                         bw = new BufferedWriter(new FileWriter(s + "/" + Character.toString(first) + "/Index.txt"));
                         bw.close();
@@ -565,7 +563,7 @@ public class Engine {
                     }
                 }
 
-                if(temp1.length() == c + 1){
+                if (temp1.length() == c + 1) {
                     bw = new BufferedWriter(new FileWriter(s + "/" + Character.toString(first) + "/blank.txt"));
                     bw.write(temp);
                     bw.newLine();
@@ -573,9 +571,8 @@ public class Engine {
                     bw = new BufferedWriter(new FileWriter(s + "/" + Character.toString(first) + "/files.txt", true));
                     bw.write(st1.nextToken());
                     bw.close();
-                }
-                else{
-                    if(Character.isUpperCase(first))
+                } else {
+                    if (Character.isUpperCase(first))
                         bw = new BufferedWriter(new FileWriter(s + "/$" + Character.toString(first) + "/Index.txt", true));
                     else
                         bw = new BufferedWriter(new FileWriter(s + "/" + Character.toString(first) + "/Index.txt", true));
@@ -585,7 +582,7 @@ public class Engine {
 
                     // UPDATING THE FILES STORE
 
-                    if(Character.isUpperCase(first))
+                    if (Character.isUpperCase(first))
                         bw = new BufferedWriter(new FileWriter(s + "/$" + Character.toString(first) + "/files.txt", true));
                     else
                         bw = new BufferedWriter(new FileWriter(s + "/" + Character.toString(first) + "/files.txt", true));
@@ -594,15 +591,14 @@ public class Engine {
 
                     // UPDATING THE NUMBER OF ELEMENTS
 
-                    int n ;
-                    if(Character.isUpperCase(first)){
+                    int n;
+                    if (Character.isUpperCase(first)) {
                         br1 = new BufferedReader(new FileReader(s + "/$" + Character.toString(first) + "/noe.txt"));
                         n = Integer.parseInt(br1.readLine());
                         br1.close();
                         n++;
                         bw = new BufferedWriter(new FileWriter(s + "/$" + Character.toString(first) + "/noe.txt"));
-                    }
-                    else{
+                    } else {
                         br1 = new BufferedReader(new FileReader(s + "/" + Character.toString(first) + "/noe.txt"));
                         n = Integer.parseInt(br1.readLine());
                         br1.close();
@@ -622,7 +618,7 @@ public class Engine {
 
     // FIND ENTRY
 
-    private Resultset find(String key, String op, String value, int a) throws IOException{
+    private Resultset find(String key, String op, String value, int a) throws IOException {
 
         BufferedReader br;
         StringTokenizer st;
@@ -633,7 +629,7 @@ public class Engine {
 
         //  EQUALS
 
-        if(op.equals("=")) {
+        if (op.equals("=")) {
 
             if (keys.contains(key) || keymap.containsKey(key)) {
 
@@ -653,7 +649,7 @@ public class Engine {
                         indexpath.append("/").append(Character.toString(first));
                     } else {
 
-                        try{
+                        try {
                             br = new BufferedReader(new FileReader(indexpath + "/Index.txt"));
                             String temp;
                             StringTokenizer st1;
@@ -666,8 +662,7 @@ public class Engine {
                             }
                             br.close();
                             break;
-                        }
-                        catch (FileNotFoundException e){
+                        } catch (FileNotFoundException e) {
                             break;
                         }
                     }
@@ -710,7 +705,7 @@ public class Engine {
 
         // LESS THAN
 
-        else if(op.equals("<")) {
+        else if (op.equals("<")) {
             if (keys.contains(key) || keymap.containsKey(key)) {
 
                 char[] valueset = value.toCharArray();
@@ -723,7 +718,7 @@ public class Engine {
                             if ((new File(indexpath + "/$" + Character.toString(c))).exists()) {
                                 br = new BufferedReader(new FileReader(indexpath + "/$" + Character.toString(c) + "/files.txt"));
                                 String s = br.readLine();
-                                if(s != null)
+                                if (s != null)
                                     rs.fileset.add(s);
 
                                 br.close();
@@ -732,7 +727,7 @@ public class Engine {
 
                         if ((new File(indexpath + "/$" + Character.toString(first))).exists()) {
                             indexpath.append("/$").append(Character.toString(first));
-                            if((new File(indexpath + "/blank.txt").exists())) {
+                            if ((new File(indexpath + "/blank.txt").exists())) {
                                 br = new BufferedReader(new FileReader(indexpath + "/blank.txt"));
                                 st = new StringTokenizer(br.readLine(), ":");
                                 st.nextToken();
@@ -740,7 +735,7 @@ public class Engine {
                                 br.close();
                             }
                         } else {
-                            try{
+                            try {
                                 StringBuilder sb = new StringBuilder("");
                                 String temp;
                                 br = new BufferedReader(new FileReader(indexpath + "/Index.txt"));
@@ -751,22 +746,21 @@ public class Engine {
                                         sb.append(st.nextToken());
                                     }
                                 }
-                                if(sb.length() != 0)
+                                if (sb.length() != 0)
                                     rs.fileset.add(sb.toString());
 
                                 br.close();
-                            }
-                            catch (FileNotFoundException e){
+                            } catch (FileNotFoundException e) {
                                 break;
                             }
                         }
-                    } else if(Character.isLowerCase(first)){
+                    } else if (Character.isLowerCase(first)) {
                         for (char c = 'a'; c < first; c++) {
 
                             if ((new File(indexpath + "/" + Character.toString(c))).exists()) {
                                 br = new BufferedReader(new FileReader(indexpath + "/" + Character.toString(c) + "/files.txt"));
                                 String s = br.readLine();
-                                if(s != null)
+                                if (s != null)
                                     rs.fileset.add(s);
                                 br.close();
                             }
@@ -774,7 +768,7 @@ public class Engine {
 
                         if ((new File(indexpath + "/" + Character.toString(first))).exists()) {
                             indexpath.append("/").append(Character.toString(first));
-                            if((new File(indexpath + "/blank.txt").exists())) {
+                            if ((new File(indexpath + "/blank.txt").exists())) {
                                 br = new BufferedReader(new FileReader(indexpath + "/blank.txt"));
                                 st = new StringTokenizer(br.readLine(), ":");
                                 st.nextToken();
@@ -782,7 +776,7 @@ public class Engine {
                                 br.close();
                             }
                         } else {
-                            try{
+                            try {
                                 StringBuilder sb = new StringBuilder("");
                                 String temp;
                                 br = new BufferedReader(new FileReader(indexpath + "/Index.txt"));
@@ -793,24 +787,21 @@ public class Engine {
                                         sb.append(st.nextToken());
                                     }
                                 }
-                                if(sb.length() != 0)
+                                if (sb.length() != 0)
                                     rs.fileset.add(sb.toString());
 
                                 br.close();
-                            }
-                            catch (FileNotFoundException e){
+                            } catch (FileNotFoundException e) {
                                 break;
                             }
                         }
-                    }
-
-                    else if(Character.isDigit(first)){
+                    } else if (Character.isDigit(first)) {
                         for (char c = '0'; c < first; c++) {
 
                             if ((new File(indexpath + "/" + Character.toString(c))).exists()) {
                                 br = new BufferedReader(new FileReader(indexpath + "/" + Character.toString(c) + "/files.txt"));
                                 String s = br.readLine();
-                                if(s != null)
+                                if (s != null)
                                     rs.fileset.add(s);
                                 br.close();
                             }
@@ -818,7 +809,7 @@ public class Engine {
 
                         if ((new File(indexpath + "/" + Character.toString(first))).exists()) {
                             indexpath.append("/").append(Character.toString(first));
-                            if((new File(indexpath + "/blank.txt").exists())) {
+                            if ((new File(indexpath + "/blank.txt").exists())) {
                                 br = new BufferedReader(new FileReader(indexpath + "/blank.txt"));
                                 st = new StringTokenizer(br.readLine(), ":");
                                 st.nextToken();
@@ -826,7 +817,7 @@ public class Engine {
                                 br.close();
                             }
                         } else {
-                            try{
+                            try {
                                 StringBuilder sb = new StringBuilder("");
                                 String temp;
                                 br = new BufferedReader(new FileReader(indexpath + "/Index.txt"));
@@ -837,12 +828,11 @@ public class Engine {
                                         sb.append(st.nextToken());
                                     }
                                 }
-                                if(sb.length() != 0)
+                                if (sb.length() != 0)
                                     rs.fileset.add(sb.toString());
 
                                 br.close();
-                            }
-                            catch (FileNotFoundException e){
+                            } catch (FileNotFoundException e) {
                                 break;
                             }
                         }
@@ -877,7 +867,7 @@ public class Engine {
 
         // GREATER THAN
 
-        else if(op.equals(">")) {
+        else if (op.equals(">")) {
             if (keys.contains(key) || keymap.containsKey(key)) {
 
                 char[] valueset = value.toCharArray();
@@ -890,7 +880,7 @@ public class Engine {
                             if ((new File(indexpath + "/$" + Character.toString(c))).exists()) {
                                 br = new BufferedReader(new FileReader(indexpath + "/$" + Character.toString(c) + "/files.txt"));
                                 String s = br.readLine();
-                                if(s != null)
+                                if (s != null)
                                     rs.fileset.add(s);
                                 br.close();
                             }
@@ -898,7 +888,7 @@ public class Engine {
 
                         if ((new File(indexpath + "/$" + Character.toString(first))).exists()) {
                             indexpath.append("/$").append(Character.toString(first));
-                            if((new File(indexpath + "/blank.txt").exists())) {
+                            if ((new File(indexpath + "/blank.txt").exists())) {
                                 br = new BufferedReader(new FileReader(indexpath + "/blank.txt"));
                                 st = new StringTokenizer(br.readLine(), ":");
                                 st.nextToken();
@@ -906,7 +896,7 @@ public class Engine {
                                 br.close();
                             }
                         } else {
-                            try{
+                            try {
                                 StringBuilder sb = new StringBuilder("");
                                 String temp;
                                 br = new BufferedReader(new FileReader(indexpath + "/Index.txt"));
@@ -917,22 +907,21 @@ public class Engine {
                                         sb.append(st.nextToken());
                                     }
                                 }
-                                if(sb.length() != 0)
+                                if (sb.length() != 0)
                                     rs.fileset.add(sb.toString());
 
                                 br.close();
-                            }
-                            catch (FileNotFoundException e){
+                            } catch (FileNotFoundException e) {
                                 break;
                             }
                         }
-                    } else if(Character.isLowerCase(first)){
+                    } else if (Character.isLowerCase(first)) {
                         for (char c = 'z'; c > first; c--) {
 
                             if ((new File(indexpath + "/" + Character.toString(c))).exists()) {
                                 br = new BufferedReader(new FileReader(indexpath + "/" + Character.toString(c) + "/files.txt"));
                                 String s = br.readLine();
-                                if(s != null)
+                                if (s != null)
                                     rs.fileset.add(s);
                                 br.close();
                             }
@@ -940,7 +929,7 @@ public class Engine {
 
                         if ((new File(indexpath + "/" + Character.toString(first))).exists()) {
                             indexpath.append("/").append(Character.toString(first));
-                            if((new File(indexpath + "/blank.txt").exists())) {
+                            if ((new File(indexpath + "/blank.txt").exists())) {
                                 br = new BufferedReader(new FileReader(indexpath + "/blank.txt"));
                                 st = new StringTokenizer(br.readLine(), ":");
                                 st.nextToken();
@@ -948,7 +937,7 @@ public class Engine {
                                 br.close();
                             }
                         } else {
-                            try{
+                            try {
                                 StringBuilder sb = new StringBuilder("");
                                 String temp;
                                 br = new BufferedReader(new FileReader(indexpath + "/Index.txt"));
@@ -959,24 +948,21 @@ public class Engine {
                                         sb.append(st.nextToken());
                                     }
                                 }
-                                if(sb.length() != 0)
+                                if (sb.length() != 0)
                                     rs.fileset.add(sb.toString());
 
                                 br.close();
-                            }
-                            catch (FileNotFoundException e){
+                            } catch (FileNotFoundException e) {
                                 break;
                             }
                         }
-                    }
-
-                    else if(Character.isDigit(first)){
+                    } else if (Character.isDigit(first)) {
                         for (char c = '9'; c > first; c--) {
 
                             if ((new File(indexpath + "/" + Character.toString(c))).exists()) {
                                 br = new BufferedReader(new FileReader(indexpath + "/" + Character.toString(c) + "/files.txt"));
                                 String s = br.readLine();
-                                if(s != null)
+                                if (s != null)
                                     rs.fileset.add(s);
                                 br.close();
                             }
@@ -984,7 +970,7 @@ public class Engine {
 
                         if ((new File(indexpath + "/" + Character.toString(first))).exists()) {
                             indexpath.append("/").append(Character.toString(first));
-                            if((new File(indexpath + "/blank.txt").exists())) {
+                            if ((new File(indexpath + "/blank.txt").exists())) {
                                 br = new BufferedReader(new FileReader(indexpath + "/blank.txt"));
                                 st = new StringTokenizer(br.readLine(), ":");
                                 st.nextToken();
@@ -992,7 +978,7 @@ public class Engine {
                                 br.close();
                             }
                         } else {
-                            try{
+                            try {
                                 StringBuilder sb = new StringBuilder("");
                                 String temp;
                                 br = new BufferedReader(new FileReader(indexpath + "/Index.txt"));
@@ -1003,12 +989,11 @@ public class Engine {
                                         sb.append(st.nextToken());
                                     }
                                 }
-                                if(sb.length() != 0)
+                                if (sb.length() != 0)
                                     rs.fileset.add(sb.toString());
 
                                 br.close();
-                            }
-                            catch (FileNotFoundException e){
+                            } catch (FileNotFoundException e) {
                                 break;
                             }
                         }
@@ -1043,145 +1028,140 @@ public class Engine {
 //
 //        GREATER THAN OR EQUAL TO
 
-        else if(op.equals(">=")) {
-                if (keys.contains(key) || keymap.containsKey(key)) {
+        else if (op.equals(">=")) {
+            if (keys.contains(key) || keymap.containsKey(key)) {
 
-                    char[] valueset = value.toCharArray();
+                char[] valueset = value.toCharArray();
 
-                    for (char first : valueset) {
+                for (char first : valueset) {
 
-                        if (Character.isUpperCase(first)) {
-                            for (char c = 'Z'; c > first; c--) {
+                    if (Character.isUpperCase(first)) {
+                        for (char c = 'Z'; c > first; c--) {
 
-                                if ((new File(indexpath + "/$" + Character.toString(c))).exists()) {
-                                    br = new BufferedReader(new FileReader(indexpath + "/$" + Character.toString(c) + "/files.txt"));
-                                    String s = br.readLine();
-                                    if(s != null)
-                                        rs.fileset.add(s);
-                                    br.close();
-                                }
-                            }
-
-                            if ((new File(indexpath + "/$" + Character.toString(first))).exists()) {
-                                indexpath.append("/$").append(Character.toString(first));
-                                if((new File(indexpath + "/blank.txt").exists())) {
-                                    br = new BufferedReader(new FileReader(indexpath + "/blank.txt"));
-                                    st = new StringTokenizer(br.readLine(), ":");
-                                    st.nextToken();
-                                    rs.fileset.add(st.nextToken());
-                                    br.close();
-                                }
-                            } else {
-                                try{
-                                    StringBuilder sb = new StringBuilder("");
-                                    String temp;
-                                    br = new BufferedReader(new FileReader(indexpath + "/Index.txt"));
-                                    while ((temp = br.readLine()) != null && temp.length() != 0) {
-                                        st = new StringTokenizer(temp, ":");
-                                        temp = st.nextToken();
-                                        if (temp.compareTo(value) < 0) {
-                                            sb.append(st.nextToken());
-                                        }
-                                    }
-                                    if(sb.length() != 0)
-                                        rs.fileset.add(sb.toString());
-
-                                    br.close();
-                                }
-                                catch (FileNotFoundException e){
-                                    break;
-                                }
-                            }
-                        } else if(Character.isLowerCase(first)){
-                            for (char c = 'z'; c > first; c--) {
-
-                                if ((new File(indexpath + "/" + Character.toString(c))).exists()) {
-                                    br = new BufferedReader(new FileReader(indexpath + "/" + Character.toString(c) + "/files.txt"));
-                                    String s = br.readLine();
-                                    if(s != null)
-                                        rs.fileset.add(s);
-                                    br.close();
-                                }
-                            }
-
-                            if ((new File(indexpath + "/" + Character.toString(first))).exists()) {
-                                indexpath.append("/").append(Character.toString(first));
-                                if((new File(indexpath + "/blank.txt").exists())) {
-                                    br = new BufferedReader(new FileReader(indexpath + "/blank.txt"));
-                                    st = new StringTokenizer(br.readLine(), ":");
-                                    st.nextToken();
-                                    rs.fileset.add(st.nextToken());
-                                    br.close();
-                                }
-                            } else {
-                                try{
-                                    StringBuilder sb = new StringBuilder("");
-                                    String temp;
-                                    br = new BufferedReader(new FileReader(indexpath + "/Index.txt"));
-                                    while ((temp = br.readLine()) != null && temp.length() != 0) {
-                                        st = new StringTokenizer(temp, ":");
-                                        temp = st.nextToken();
-                                        if (temp.compareTo(value) < 0) {
-                                            sb.append(st.nextToken());
-                                        }
-                                    }
-                                    if(sb.length() != 0)
-                                        rs.fileset.add(sb.toString());
-
-                                    br.close();
-                                }
-                                catch (FileNotFoundException e){
-                                    break;
-                                }
+                            if ((new File(indexpath + "/$" + Character.toString(c))).exists()) {
+                                br = new BufferedReader(new FileReader(indexpath + "/$" + Character.toString(c) + "/files.txt"));
+                                String s = br.readLine();
+                                if (s != null)
+                                    rs.fileset.add(s);
+                                br.close();
                             }
                         }
 
-                        else if(Character.isDigit(first)){
-                            for (char c = '9'; c > first; c--) {
-
-                                if ((new File(indexpath + "/" + Character.toString(c))).exists()) {
-                                    br = new BufferedReader(new FileReader(indexpath + "/" + Character.toString(c) + "/files.txt"));
-                                    String s = br.readLine();
-                                    if(s != null)
-                                        rs.fileset.add(s);
-                                    br.close();
-                                }
+                        if ((new File(indexpath + "/$" + Character.toString(first))).exists()) {
+                            indexpath.append("/$").append(Character.toString(first));
+                            if ((new File(indexpath + "/blank.txt").exists())) {
+                                br = new BufferedReader(new FileReader(indexpath + "/blank.txt"));
+                                st = new StringTokenizer(br.readLine(), ":");
+                                st.nextToken();
+                                rs.fileset.add(st.nextToken());
+                                br.close();
                             }
-
-                            if ((new File(indexpath + "/" + Character.toString(first))).exists()) {
-                                indexpath.append("/").append(Character.toString(first));
-                                if((new File(indexpath + "/blank.txt").exists())) {
-                                    br = new BufferedReader(new FileReader(indexpath + "/blank.txt"));
-                                    st = new StringTokenizer(br.readLine(), ":");
-                                    st.nextToken();
-                                    rs.fileset.add(st.nextToken());
-                                    br.close();
-                                }
-                            } else {
-                                try{
-                                    StringBuilder sb = new StringBuilder("");
-                                    String temp;
-                                    br = new BufferedReader(new FileReader(indexpath + "/Index.txt"));
-                                    while ((temp = br.readLine()) != null && temp.length() != 0) {
-                                        st = new StringTokenizer(temp, ":");
-                                        temp = st.nextToken();
-                                        if (temp.compareTo(value) < 0) {
-                                            sb.append(st.nextToken());
-                                        }
+                        } else {
+                            try {
+                                StringBuilder sb = new StringBuilder("");
+                                String temp;
+                                br = new BufferedReader(new FileReader(indexpath + "/Index.txt"));
+                                while ((temp = br.readLine()) != null && temp.length() != 0) {
+                                    st = new StringTokenizer(temp, ":");
+                                    temp = st.nextToken();
+                                    if (temp.compareTo(value) < 0) {
+                                        sb.append(st.nextToken());
                                     }
-                                    if(sb.length() != 0)
-                                        rs.fileset.add(sb.toString());
+                                }
+                                if (sb.length() != 0)
+                                    rs.fileset.add(sb.toString());
 
-                                    br.close();
+                                br.close();
+                            } catch (FileNotFoundException e) {
+                                break;
+                            }
+                        }
+                    } else if (Character.isLowerCase(first)) {
+                        for (char c = 'z'; c > first; c--) {
+
+                            if ((new File(indexpath + "/" + Character.toString(c))).exists()) {
+                                br = new BufferedReader(new FileReader(indexpath + "/" + Character.toString(c) + "/files.txt"));
+                                String s = br.readLine();
+                                if (s != null)
+                                    rs.fileset.add(s);
+                                br.close();
+                            }
+                        }
+
+                        if ((new File(indexpath + "/" + Character.toString(first))).exists()) {
+                            indexpath.append("/").append(Character.toString(first));
+                            if ((new File(indexpath + "/blank.txt").exists())) {
+                                br = new BufferedReader(new FileReader(indexpath + "/blank.txt"));
+                                st = new StringTokenizer(br.readLine(), ":");
+                                st.nextToken();
+                                rs.fileset.add(st.nextToken());
+                                br.close();
+                            }
+                        } else {
+                            try {
+                                StringBuilder sb = new StringBuilder("");
+                                String temp;
+                                br = new BufferedReader(new FileReader(indexpath + "/Index.txt"));
+                                while ((temp = br.readLine()) != null && temp.length() != 0) {
+                                    st = new StringTokenizer(temp, ":");
+                                    temp = st.nextToken();
+                                    if (temp.compareTo(value) < 0) {
+                                        sb.append(st.nextToken());
+                                    }
                                 }
-                                catch (FileNotFoundException e){
-                                    break;
+                                if (sb.length() != 0)
+                                    rs.fileset.add(sb.toString());
+
+                                br.close();
+                            } catch (FileNotFoundException e) {
+                                break;
+                            }
+                        }
+                    } else if (Character.isDigit(first)) {
+                        for (char c = '9'; c > first; c--) {
+
+                            if ((new File(indexpath + "/" + Character.toString(c))).exists()) {
+                                br = new BufferedReader(new FileReader(indexpath + "/" + Character.toString(c) + "/files.txt"));
+                                String s = br.readLine();
+                                if (s != null)
+                                    rs.fileset.add(s);
+                                br.close();
+                            }
+                        }
+
+                        if ((new File(indexpath + "/" + Character.toString(first))).exists()) {
+                            indexpath.append("/").append(Character.toString(first));
+                            if ((new File(indexpath + "/blank.txt").exists())) {
+                                br = new BufferedReader(new FileReader(indexpath + "/blank.txt"));
+                                st = new StringTokenizer(br.readLine(), ":");
+                                st.nextToken();
+                                rs.fileset.add(st.nextToken());
+                                br.close();
+                            }
+                        } else {
+                            try {
+                                StringBuilder sb = new StringBuilder("");
+                                String temp;
+                                br = new BufferedReader(new FileReader(indexpath + "/Index.txt"));
+                                while ((temp = br.readLine()) != null && temp.length() != 0) {
+                                    st = new StringTokenizer(temp, ":");
+                                    temp = st.nextToken();
+                                    if (temp.compareTo(value) < 0) {
+                                        sb.append(st.nextToken());
+                                    }
                                 }
+                                if (sb.length() != 0)
+                                    rs.fileset.add(sb.toString());
+
+                                br.close();
+                            } catch (FileNotFoundException e) {
+                                break;
                             }
                         }
                     }
                 }
             }
+        }
 
 //            else{
 //                fileFork.Entry e;
@@ -1209,145 +1189,140 @@ public class Engine {
 //
 //        LESS THAN OR EQUAL TO
 
-        else if(op.equals("<=")) {
-                    if (keys.contains(key) || keymap.containsKey(key)) {
+        else if (op.equals("<=")) {
+            if (keys.contains(key) || keymap.containsKey(key)) {
 
-                        char[] valueset = value.toCharArray();
+                char[] valueset = value.toCharArray();
 
-                        for (char first : valueset) {
+                for (char first : valueset) {
 
-                            if (Character.isUpperCase(first)) {
-                                for (char c = 'A'; c < first; c++) {
+                    if (Character.isUpperCase(first)) {
+                        for (char c = 'A'; c < first; c++) {
 
-                                    if ((new File(indexpath + "/$" + Character.toString(c))).exists()) {
-                                        br = new BufferedReader(new FileReader(indexpath + "/$" + Character.toString(c) + "/files.txt"));
-                                        String s = br.readLine();
-                                        if(s != null)
-                                            rs.fileset.add(s);
-                                        br.close();
-                                    }
-                                }
-
-                                if ((new File(indexpath + "/$" + Character.toString(first))).exists()) {
-                                    indexpath.append("/$").append(Character.toString(first));
-                                    if((new File(indexpath + "/blank.txt").exists())) {
-                                        br = new BufferedReader(new FileReader(indexpath + "/blank.txt"));
-                                        st = new StringTokenizer(br.readLine(), ":");
-                                        st.nextToken();
-                                        rs.fileset.add(st.nextToken());
-                                        br.close();
-                                    }
-                                } else {
-                                    try{
-                                        StringBuilder sb = new StringBuilder("");
-                                        String temp;
-                                        br = new BufferedReader(new FileReader(indexpath + "/Index.txt"));
-                                        while ((temp = br.readLine()) != null && temp.length() != 0) {
-                                            st = new StringTokenizer(temp, ":");
-                                            temp = st.nextToken();
-                                            if (temp.compareTo(value) < 0) {
-                                                sb.append(st.nextToken());
-                                            }
-                                        }
-                                        if(sb.length() != 0)
-                                            rs.fileset.add(sb.toString());
-
-                                        br.close();
-                                    }
-                                    catch (FileNotFoundException e){
-                                        break;
-                                    }
-                                }
-                            } else if(Character.isLowerCase(first)){
-                                for (char c = 'a'; c < first; c++) {
-
-                                    if ((new File(indexpath + "/" + Character.toString(c))).exists()) {
-                                        br = new BufferedReader(new FileReader(indexpath + "/" + Character.toString(c) + "/files.txt"));
-                                        String s = br.readLine();
-                                        if(s != null)
-                                            rs.fileset.add(s);
-                                        br.close();
-                                    }
-                                }
-
-                                if ((new File(indexpath + "/" + Character.toString(first))).exists()) {
-                                    indexpath.append("/").append(Character.toString(first));
-                                    if((new File(indexpath + "/blank.txt").exists())) {
-                                        br = new BufferedReader(new FileReader(indexpath + "/blank.txt"));
-                                        st = new StringTokenizer(br.readLine(), ":");
-                                        st.nextToken();
-                                        rs.fileset.add(st.nextToken());
-                                        br.close();
-                                    }
-                                } else {
-                                    try{
-                                        StringBuilder sb = new StringBuilder("");
-                                        String temp;
-                                        br = new BufferedReader(new FileReader(indexpath + "/Index.txt"));
-                                        while ((temp = br.readLine()) != null && temp.length() != 0) {
-                                            st = new StringTokenizer(temp, ":");
-                                            temp = st.nextToken();
-                                            if (temp.compareTo(value) < 0) {
-                                                sb.append(st.nextToken());
-                                            }
-                                        }
-                                        if(sb.length() != 0)
-                                            rs.fileset.add(sb.toString());
-
-                                        br.close();
-                                    }
-                                    catch (FileNotFoundException e){
-                                        break;
-                                    }
-                                }
+                            if ((new File(indexpath + "/$" + Character.toString(c))).exists()) {
+                                br = new BufferedReader(new FileReader(indexpath + "/$" + Character.toString(c) + "/files.txt"));
+                                String s = br.readLine();
+                                if (s != null)
+                                    rs.fileset.add(s);
+                                br.close();
                             }
+                        }
 
-                            else if(Character.isDigit(first)){
-                                for (char c = '0'; c < first; c++) {
-
-                                    if ((new File(indexpath + "/" + Character.toString(c))).exists()) {
-                                        br = new BufferedReader(new FileReader(indexpath + "/" + Character.toString(c) + "/files.txt"));
-                                        String s = br.readLine();
-                                        if(s != null)
-                                            rs.fileset.add(s);
-                                        br.close();
+                        if ((new File(indexpath + "/$" + Character.toString(first))).exists()) {
+                            indexpath.append("/$").append(Character.toString(first));
+                            if ((new File(indexpath + "/blank.txt").exists())) {
+                                br = new BufferedReader(new FileReader(indexpath + "/blank.txt"));
+                                st = new StringTokenizer(br.readLine(), ":");
+                                st.nextToken();
+                                rs.fileset.add(st.nextToken());
+                                br.close();
+                            }
+                        } else {
+                            try {
+                                StringBuilder sb = new StringBuilder("");
+                                String temp;
+                                br = new BufferedReader(new FileReader(indexpath + "/Index.txt"));
+                                while ((temp = br.readLine()) != null && temp.length() != 0) {
+                                    st = new StringTokenizer(temp, ":");
+                                    temp = st.nextToken();
+                                    if (temp.compareTo(value) < 0) {
+                                        sb.append(st.nextToken());
                                     }
                                 }
+                                if (sb.length() != 0)
+                                    rs.fileset.add(sb.toString());
 
-                                if ((new File(indexpath + "/" + Character.toString(first))).exists()) {
-                                    indexpath.append("/").append(Character.toString(first));
-                                    if((new File(indexpath + "/blank.txt").exists())) {
-                                        br = new BufferedReader(new FileReader(indexpath + "/blank.txt"));
-                                        st = new StringTokenizer(br.readLine(), ":");
-                                        st.nextToken();
-                                        rs.fileset.add(st.nextToken());
-                                        br.close();
-                                    }
-                                } else {
-                                    try{
-                                        StringBuilder sb = new StringBuilder("");
-                                        String temp;
-                                        br = new BufferedReader(new FileReader(indexpath + "/Index.txt"));
-                                        while ((temp = br.readLine()) != null && temp.length() != 0) {
-                                            st = new StringTokenizer(temp, ":");
-                                            temp = st.nextToken();
-                                            if (temp.compareTo(value) < 0) {
-                                                sb.append(st.nextToken());
-                                            }
-                                        }
-                                        if(sb.length() != 0)
-                                            rs.fileset.add(sb.toString());
+                                br.close();
+                            } catch (FileNotFoundException e) {
+                                break;
+                            }
+                        }
+                    } else if (Character.isLowerCase(first)) {
+                        for (char c = 'a'; c < first; c++) {
 
-                                        br.close();
-                                    }
-                                    catch (FileNotFoundException e){
-                                        break;
+                            if ((new File(indexpath + "/" + Character.toString(c))).exists()) {
+                                br = new BufferedReader(new FileReader(indexpath + "/" + Character.toString(c) + "/files.txt"));
+                                String s = br.readLine();
+                                if (s != null)
+                                    rs.fileset.add(s);
+                                br.close();
+                            }
+                        }
+
+                        if ((new File(indexpath + "/" + Character.toString(first))).exists()) {
+                            indexpath.append("/").append(Character.toString(first));
+                            if ((new File(indexpath + "/blank.txt").exists())) {
+                                br = new BufferedReader(new FileReader(indexpath + "/blank.txt"));
+                                st = new StringTokenizer(br.readLine(), ":");
+                                st.nextToken();
+                                rs.fileset.add(st.nextToken());
+                                br.close();
+                            }
+                        } else {
+                            try {
+                                StringBuilder sb = new StringBuilder("");
+                                String temp;
+                                br = new BufferedReader(new FileReader(indexpath + "/Index.txt"));
+                                while ((temp = br.readLine()) != null && temp.length() != 0) {
+                                    st = new StringTokenizer(temp, ":");
+                                    temp = st.nextToken();
+                                    if (temp.compareTo(value) < 0) {
+                                        sb.append(st.nextToken());
                                     }
                                 }
+                                if (sb.length() != 0)
+                                    rs.fileset.add(sb.toString());
+
+                                br.close();
+                            } catch (FileNotFoundException e) {
+                                break;
+                            }
+                        }
+                    } else if (Character.isDigit(first)) {
+                        for (char c = '0'; c < first; c++) {
+
+                            if ((new File(indexpath + "/" + Character.toString(c))).exists()) {
+                                br = new BufferedReader(new FileReader(indexpath + "/" + Character.toString(c) + "/files.txt"));
+                                String s = br.readLine();
+                                if (s != null)
+                                    rs.fileset.add(s);
+                                br.close();
+                            }
+                        }
+
+                        if ((new File(indexpath + "/" + Character.toString(first))).exists()) {
+                            indexpath.append("/").append(Character.toString(first));
+                            if ((new File(indexpath + "/blank.txt").exists())) {
+                                br = new BufferedReader(new FileReader(indexpath + "/blank.txt"));
+                                st = new StringTokenizer(br.readLine(), ":");
+                                st.nextToken();
+                                rs.fileset.add(st.nextToken());
+                                br.close();
+                            }
+                        } else {
+                            try {
+                                StringBuilder sb = new StringBuilder("");
+                                String temp;
+                                br = new BufferedReader(new FileReader(indexpath + "/Index.txt"));
+                                while ((temp = br.readLine()) != null && temp.length() != 0) {
+                                    st = new StringTokenizer(temp, ":");
+                                    temp = st.nextToken();
+                                    if (temp.compareTo(value) < 0) {
+                                        sb.append(st.nextToken());
+                                    }
+                                }
+                                if (sb.length() != 0)
+                                    rs.fileset.add(sb.toString());
+
+                                br.close();
+                            } catch (FileNotFoundException e) {
+                                break;
                             }
                         }
                     }
                 }
+            }
+        }
 
 //            else{
 //                fileFork.Entry e;
@@ -1377,13 +1352,13 @@ public class Engine {
 
 //    ADDING A NEW INDEX
 
-    public final void addIndex(String Attribute) throws IOException{
+    public final void addIndex(String Attribute) throws IOException {
 
         BufferedWriter bw;
 
         // LISTOFINDEXES FILE
 
-        bw = new BufferedWriter(new FileWriter(location + "/" + "Indexes" + "/" +"ListOfIndexes.txt", true));
+        bw = new BufferedWriter(new FileWriter(location + "/" + "Indexes" + "/" + "ListOfIndexes.txt", true));
         bw.write(Attribute + ":" + "ALPHA");
         bw.newLine();
         bw.close();
@@ -1393,30 +1368,30 @@ public class Engine {
 
         Entry e;
         Attribute p;
-        for(int i = 1 ; i <= noe ; i++){
+        for (int i = 1; i <= noe; i++) {
             e = new Entry(i, location);
             Iterator<Attribute> it = e.data.listIterator();
-            while(it.hasNext()){
-               p = it.next();
-               if(p.key.equals(Attribute)){
+            while (it.hasNext()) {
+                p = it.next();
+                if (p.key.equals(Attribute)) {
 
-                   for(String s : p.values){
-                       js.makeIndex(Attribute, s, i);
-                   }
-               }
+                    for (String s : p.values) {
+                        js.makeIndex(Attribute, s, i);
+                    }
+                }
             }
         }
     }
 
     // ADD NEW NUMERIC INDEX
 
-    public final void addIndex(String NumericAttribute, int MaxDigits) throws IOException{
+    public final void addIndex(String NumericAttribute, int MaxDigits) throws IOException {
 
         BufferedWriter bw;
 
         // LISTOFINDEXES FILE
 
-        bw = new BufferedWriter(new FileWriter(location + "/" + "Indexes" + "/" +"ListOfIndexes.txt", true));
+        bw = new BufferedWriter(new FileWriter(location + "/" + "Indexes" + "/" + "ListOfIndexes.txt", true));
         bw.write(NumericAttribute + ":" + Integer.toString(MaxDigits));
         bw.newLine();
         bw.close();
@@ -1426,14 +1401,14 @@ public class Engine {
 
         Entry e;
         Attribute p;
-        for(int i = 1 ; i <= noe ; i++){
+        for (int i = 1; i <= noe; i++) {
             e = new Entry(i, location);
             Iterator<Attribute> it = e.data.listIterator();
-            while(it.hasNext()){
+            while (it.hasNext()) {
                 p = it.next();
-                if(p.key.equals(NumericAttribute)){
+                if (p.key.equals(NumericAttribute)) {
 
-                    for(String s : p.values){
+                    for (String s : p.values) {
                         js.makeIndex(NumericAttribute, s, i, MaxDigits);
                     }
                 }
@@ -1497,10 +1472,8 @@ public class Engine {
                 bw = new BufferedWriter(new FileWriter(indexpath.toString() + "/status.txt"));
                 bw.write("nf");
                 bw.close();
-            }
-            else j = 0;
-        }
-        else{
+            } else j = 0;
+        } else {
             if (!(new File(indexpath + "/" + Character.toString(ch))).exists()) {
                 indexpath.append("/").append(Character.toString(ch));
                 new File(indexpath.toString()).mkdirs();
@@ -1515,8 +1488,7 @@ public class Engine {
                 bw = new BufferedWriter(new FileWriter(indexpath.toString() + "/status.txt"));
                 bw.write("nf");
                 bw.close();
-            }
-            else j = 0;
+            } else j = 0;
         }
         first = ch;
         for (; j < valuebase.length; j++) {
@@ -1586,7 +1558,7 @@ public class Engine {
                 File f1 = new File(indexpath.toString() + "/newfile.txt");
                 bw = new BufferedWriter(new FileWriter(f1));
                 Iterator<String> it = temp1.iterator();
-                while(it.hasNext()){
+                while (it.hasNext()) {
                     bw.write(it.next());
                     bw.newLine();
                 }
@@ -1686,7 +1658,7 @@ public class Engine {
 //            f.delete();
 //        }
 //
-        // DELETING THE DIRECTORY
+    // DELETING THE DIRECTORY
 
 //        new File(location + "/Indexes/" + index).delete();
 //    }
